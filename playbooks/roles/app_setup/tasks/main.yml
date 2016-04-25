@@ -1,2 +1,40 @@
 ---
 # file: roles/app_setup/tasks/main.yml
+# Tasks to build the rails app
+
+- name: clone or update source
+  git:
+    repo: "{{ git_url }}"
+    version: "{{ git_branch }}"
+    dest: "{{ app_path }}"
+    update: yes
+    accept_hostkey: yes
+    force: yes
+  notify: restart nginx
+
+- name: export rails env variables
+  template: src=rails_env.sh.j2 dest=/etc/profile.d/rails_env.sh mode=0644
+  become: yes
+  notify: restart nginx
+
+- name: save ruby path for application
+  shell: "`which passenger-config` --ruby-command | grep -e Command | sed -n -e 's/^.*Command: //p'"
+  args:
+    chdir: "{{ app_path }}"
+  register: ruby_path
+
+- name: install dependencies
+  bundler: state=present chdir="{{ app_path }}"
+  notify: restart nginx
+
+- name: precompile assets
+  shell: "`which bundle` exec rails assets:clean assets:precompile"
+  args:
+    chdir: "{{ app_path }}"
+  notify: restart nginx
+
+- name: migrate database
+  shell: ". /etc/profile.d/rails_env.sh && bundle exec rails db:migrate"
+  args:
+    chdir: "{{ app_path }}"
+  notify: restart nginx

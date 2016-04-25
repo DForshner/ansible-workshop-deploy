@@ -1,5 +1,6 @@
 ---
 # file: roles/common/tasks/main.yml
+# Tasks common to all nodes
 
 - name: update apt-get
   apt: update_cache=yes cache_valid_time=300
@@ -26,3 +27,8 @@
 - name: disallow password authentication
   lineinfile: dest=/etc/ssh/sshd_config regexp="^PasswordAuthentication" line="PasswordAuthentication no"
   notify: restart ssh
+
+- name: disable legacy systemd script
+  service: name="{{ app_name }}.target" enabled=no state=stopped
+  register: command_result
+  failed_when: "command_result | failed and 'could not find' not in command_result.msg"
