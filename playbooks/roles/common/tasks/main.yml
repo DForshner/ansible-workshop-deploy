@@ -1,0 +1,29 @@
+---
+# file: roles/common/tasks/main.yml
+
+- name: update apt-get
+  apt: update_cache=yes cache_valid_time=300
+
+- name: install required software
+  apt: name={{ item }} state=latest
+  with_items:
+    - curl
+    - git
+    - nodejs
+
+- name: create sym link
+  file: src=/usr/bin/nodejs dest=/usr/bin/node state=link
+
+- name: default login shell to app's source
+  lineinfile: dest=/root/.bashrc line="cd {{ app_path }}" 
+
+- name: setup an authorized key for root
+  authorized_key: user=root key="{{ item }}" state=present 
+  with_file:
+    - public_keys/id_rsa.pub
+
+- name: disallow password auth
+  lineinfile: dest=/etc/ssh/sshd_config regexp="^PasswordAuthentication" line="PasswordAuthentication no"
+
+- name: restart ssh service
+  service: name=ssh state=restarted
