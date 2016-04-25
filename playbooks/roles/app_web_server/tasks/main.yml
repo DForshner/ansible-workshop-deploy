@@ -28,20 +28,12 @@
     RAILS_ENV: "{{ rails_env }}"
 
 - name: create foreman config
-  lineinfile:
-    line: "port: 80"
-    dest: "{{ app_path }}/.foreman"
-    create: yes
-
-- name: setup rails env
-  lineinfile:
-    line: "{{ item }}"
-    dest: "{{ app_path }}/.env"
-    create: yes
-  with_items:
-    - "RAILS_ENV={{ rails_env }}"
-    - "SECRET_KEY_BASE={{ secret_key_base }}"
-    - "RAILS_SERVE_STATIC_FILES=true"
+  template: src=foreman_config.j2 dest="{{ app_path }}/.foreman" mode=0644
+  become: yes
+  
+- name: export rails env variables
+  template: src=rails_env.sh.j2 dest=/etc/profile.d/rails_env.sh mode=0644
+  become: yes
 
 - name: create systemd script
   shell: bundle exec foreman export systemd /etc/systemd/system -a {{ app_name }} -u root

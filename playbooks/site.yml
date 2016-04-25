@@ -1,12 +1,25 @@
 ---
-- include: common.yml
+- name: apply common configuration to all nodes
+  hosts: all
+  remote_user: root
+  roles:
+    - common
 
-- name: deploy and configure rvm 
+- name: deploy and configure rvm
   hosts: web_servers
   remote_user: root
-  roles: 
+  roles:
     - rvm_io.rvm1-ruby
 
-- include: app_setup.yml
+- name: install the rails app
+  hosts: web_servers
+  remote_user: root
+  roles:
+    - app_setup
 
-- include: app_web_server.yml
+- name: run the rails app
+  hosts: web_servers
+  remote_user: root
+  become: yes
+  roles:
+    - app_web_server

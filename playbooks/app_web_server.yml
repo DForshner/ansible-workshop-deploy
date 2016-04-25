@@ -1,6 +1,0 @@
----
- - name: run the rails app
-   hosts: web_servers 
-   remote_user: root
-   roles:
-      - app_web_server
