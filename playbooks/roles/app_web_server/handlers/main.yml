@@ -1,0 +1,4 @@
+---
+- name: restart app
+  service: name="{{ app_name }}.target" state=restarted
+  become: yes

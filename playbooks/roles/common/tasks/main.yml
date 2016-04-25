@@ -21,9 +21,8 @@
   authorized_key: user=root key="{{ item }}" state=present 
   with_file:
     - public_keys/id_rsa.pub
+  notify: restart ssh
 
-- name: disallow password auth
+- name: disallow password authentication
   lineinfile: dest=/etc/ssh/sshd_config regexp="^PasswordAuthentication" line="PasswordAuthentication no"
-
-- name: restart ssh service
-  service: name=ssh state=restarted
+  notify: restart ssh
