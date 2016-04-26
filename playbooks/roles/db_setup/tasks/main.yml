@@ -1,0 +1,43 @@
+---
+# file: roles/db_setup/tasks/main.yml
+# Tasks to build the database
+
+- name: install db dependencies
+  apt: name="{{ item }}" state=latest
+  become: yes
+  with_items:
+    - postgresql
+    - libpq-dev
+    - python-psycopg2
+
+- name: update postgresql config to allow remote connections
+  lineinfile:
+    dest: /etc/postgresql/9.4/main/postgresql.conf
+    line: "listen_addresses = '*'"
+  become: yes
+  notify: restart db
+
+- name: start and enable the PostgreSQL service
+  service: name=postgresql enabled=yes state=started
+  become: yes
+
+- name: initialize the app databases
+  become: yes
+  become_user: postgres
+  postgresql_db: name="{{ item }}" port="{{ db_rails_port }}" encoding="UTF-8" login_user=postgres
+  with_items:
+    - "{{ db_rails_name }}_dev"
+    - "{{ db_rails_name }}_test"
+    - "{{ db_rails_name }}"
+  notify: restart db
+
+- name: setup a user for rails 
+  become: yes
+  become_user: postgres
+  postgresql_user:
+    name: "{{ db_rails_username }}"
+    password: "{{ db_rails_password }}"
+    role_attr_flags: CREATEDB,NOSUPERUSER
+    state: present
+    login_user: postgres
+  notify: restart db

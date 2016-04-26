@@ -9,11 +9,7 @@
   apt: name={{ item }} state=latest
   with_items:
     - curl
-    - git
-    - nodejs
-
-- name: create sym link
-  file: src=/usr/bin/nodejs dest=/usr/bin/node state=link
+    - sudo
 
 - name: default login shell to app's source
   lineinfile: dest=/root/.bashrc line="cd {{ app_path }}" 

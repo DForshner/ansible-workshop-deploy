@@ -6,19 +6,19 @@
   service: name="{{ app_name }}.target" enabled=no state=stopped
   register: command_result
   failed_when: "command_result | failed and 'could not find' not in command_result.msg"
-  
+
 - name: configure nginx passenger
   template: src=passenger.conf.j2 dest=/etc/nginx/conf.d/passenger.conf mode=0644
   notify: restart nginx
-  
+
 - name: ensure rails env variables are loaded
   lineinfile: dest=/etc/default/nginx line="source /etc/profile.d/rails_env.sh"
   notify: restart nginx
-  
+
 - name: install site definition into application site
   template: src=app.conf.j2 dest=/etc/nginx/sites-available/app.conf mode=0644
   notify: restart nginx
-  
+
 - name: clear the default nginx site
   file: path=/etc/nginx/sites-enabled/default state=absent
 
@@ -28,7 +28,7 @@
         state=link
         force=yes
   notify: restart nginx
-  
+
 - name: restart nginx
   service: name=nginx state=restarted
   when: rails_build is defined
