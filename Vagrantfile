@@ -2,6 +2,7 @@
 # vi: set ft=ruby :
 
 ANSIBLE_PATH = "/ansible".freeze
+VAULT_PASS_PATH = "/vault_pass".freeze
 
 Vagrant.require_version ">= 1.8.0"
 Vagrant.configure(2) do |config|
@@ -12,8 +13,14 @@ Vagrant.configure(2) do |config|
 
   if Vagrant::Util::Platform.windows? || ENV["NFS"] == "false"
     config.vm.synced_folder ".", ANSIBLE_PATH, enabled: true
+	
+	# Kludge - The vault key cannot have the execute permission
+    config.vm.synced_folder "./playbooks/vault_pass", VAULT_PASS_PATH, enabled: true, :mount_options => ["dmode=777","fmode=666"]
   else
-    config.vm.synced_folder ".", ANSIBLE_PATH, enabled: true, type: :nfs
+    config.vm.synced_folder ".", ANSIBLE_PATH, enabled: true, type: nfs
+	
+	# Kludge - The vault key cannot have the execute permission
+    config.vm.synced_folder "./playbooks/vault_pass", VAULT_PASS_PATH, enabled: true, type: nfs, :mount_options => ["dmode=777","fmode=666"]
   end
 
   if Vagrant.has_plugin?("vagrant-cachier")
