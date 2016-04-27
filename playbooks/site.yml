@@ -12,13 +12,13 @@
     - rvm_io.rvm1-ruby
     - abtris.nginx-passenger
 
+# TODO: Change host to db_servers
 - name: install the db
   hosts: web_servers
-  remote_user: root
+  remote_user: "{{ app_user }}"
   roles:
     - db_setup
 
-# TODO: Change host to db_servers
 - name: install the rails app
   hosts: web_servers
   remote_user: root

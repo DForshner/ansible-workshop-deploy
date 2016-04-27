@@ -5,6 +5,7 @@
 # Note: Need libpg-dev or `gem install pg -v '0.18.4' fails when installing dependencies
 - name: install required software
   apt: name={{ item }} state=latest
+  become: yes
   with_items:
     - curl
     - git
@@ -13,6 +14,17 @@
 
 - name: create sym link
   file: src=/usr/bin/nodejs dest=/usr/bin/node state=link
+  become: yes
+
+- name: create source directory with rwxr-xr-x owned by app user
+  become: yes
+  file:
+    path: "{{ app_path }}"
+    state: directory
+    mode: 0755
+    owner: "{{ app_user }}"
+    group: www-data
+    recurse: yes  
 
 - name: clone or update source
   git:

@@ -11,6 +11,19 @@
     - curl
     - sudo
 
+- name: setup app user
+  user: name="{{ app_user }}" shell=/bin/bash groups=www-data
+
+- name: add application user to core groups
+  user: name="{{ app_user }}" group=www-data groups="{{ item }}" append=yes shell=/bin/bash
+  with_items:
+    - www-data
+    - staff
+    - sudo
+
+- name: give app user passwordless sudo
+  lineinfile: dest=/etc/sudoers state=present line="{{ app_user }}    ALL=(ALL) NOPASSWD:ALL"
+
 - name: default login shell to app's source
   lineinfile: dest=/root/.bashrc line="cd {{ app_path }}" 
 
@@ -19,6 +32,12 @@
   with_file:
     - public_keys/id_rsa.pub
   notify: restart ssh
+  
+- name: setup an authorized key for app user
+  authorized_key: user={{ app_user }} key="{{ item }}" state=present 
+  with_file:
+    - public_keys/id_rsa.pub
+  notify: restart ssh  
 
 - name: disallow password authentication
   lineinfile: dest=/etc/ssh/sshd_config regexp="^PasswordAuthentication" line="PasswordAuthentication no"
@@ -28,3 +47,9 @@
   service: name="{{ app_name }}.target" enabled=no state=stopped
   register: command_result
   failed_when: "command_result | failed and 'could not find' not in command_result.msg"
+  
+- name: set default present working directory (PWD)
+  lineinfile: dest="{{ item }}/.bashrc" line="cd {{ app_path }}"
+  with_items:
+    - /root
+    - "/home/{{ app_user }}"
