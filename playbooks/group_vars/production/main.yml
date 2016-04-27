@@ -2,8 +2,7 @@
 rails_env: production
 secret_key_base: "{{ vaulted_secret_key_base }}"
 
-# TODO: Move to seperate server main_db_server: 159.203.30.99
-main_db_server: localhost
+main_db_server: 159.203.30.99
 
 main_web_server: 159.203.14.69
 server_name: "{{ main_web_server }}"

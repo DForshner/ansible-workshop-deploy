@@ -32,7 +32,7 @@
   with_file:
     - public_keys/id_rsa.pub
   notify: restart ssh
-  
+
 - name: setup an authorized key for app user
   authorized_key: user={{ app_user }} key="{{ item }}" state=present 
   with_file:
